@@ -1,3 +1,4 @@
+#include <capstone/capstone.h>
 #include <elf.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -9,6 +10,9 @@ int main(void) {
 	uint64_t size;
 	Elf64_Ehdr *ehdr;
 	Elf64_Phdr *phdr;
+	csh handle;
+	cs_insn *insn;
+	size_t count;
 
 	fd = fopen("a.out", "rb");
 
@@ -25,19 +29,26 @@ int main(void) {
 
 	ehdr = (Elf64_Ehdr *) raw;
 
+	if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK)
+		goto cleanup;
+
+	phdr = (Elf64_Phdr *) (raw + ehdr->e_phoff);
+
 	for (size_t i = 0; i < ehdr->e_phnum; ++i) {
-		phdr = (Elf64_Phdr *) (raw + ehdr->e_phoff + i * ehdr->e_phoff);
 		if (!(phdr->p_flags & 1)) continue;
 
-		for (size_t j = phdr->p_offset; j < phdr->p_offset + phdr->p_filesz; j+=2) {
-			printf("%02x", raw[j]);
-			if (raw[j]) printf("%02x", raw[j+1]);
-			else break;
-			putchar((j+1-phdr->p_offset) % 0x10 != 0xf ? 0x20 : 0x0a);
+		count = cs_disasm(handle, raw + phdr->p_offset, phdr->p_filesz, phdr->p_vaddr, 0, &insn);
+
+		for (size_t j = 0; j < count; ++j) {
+			printf("0x%0lx:\t%s\t\t%s\n",
+				insn[j].address, insn[j].mnemonic, insn[j].op_str);
 		}
 
-		putchar(0x0a);
+		cs_free(insn, count);
+		phdr += 1;
 	}
+
+	cs_close(&handle);
 
 cleanup:
 	free(raw);
