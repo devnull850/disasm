@@ -1,7 +1,10 @@
+FLAGS=-Wall -Werror -g
+OBJ=analysis.o file.o disasm.o
+
 all: analysis
 
-analysis: analysis.o file.o
-	gcc -Wall -Werror -g -o analysis analysis.o file.o -lcapstone
+analysis: $(OBJ)
+	gcc $(FLAGS) -o analysis $(OBJ) -lcapstone
 
 analysis.o: analysis.c
 	gcc -c analysis.c
@@ -9,6 +12,9 @@ analysis.o: analysis.c
 file.o: file.c
 	gcc -c file.c
 
+disasm.o: disasm.c
+	gcc -c disasm.c
+
 .PHONY:
 clean:
-	rm analysis analysis.o file.o
+	rm analysis $(OBJ)
