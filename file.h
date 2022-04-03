@@ -16,12 +16,18 @@ struct Elf64_bin {
     struct Segment *segments;
 };
 
-uint8_t *get_raw_bytes(const char *);
+struct Bytes {
+    uint8_t *bytes;
+    size_t size;
+};
 
-int is_elf(uint8_t *);
-int is_pe(uint8_t *);
+struct Bytes *get_raw_bytes(const char *);
+void free_raw_bytes(struct Bytes *);
 
-struct Elf64_bin *parse_elf(uint8_t *);
+int is_elf(struct Bytes *);
+int is_pe(struct Bytes *);
+
+struct Elf64_bin *parse_elf(struct Bytes *);
 void free_elf(struct Elf64_bin *);
 
 #endif /* FILE_H */

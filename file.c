@@ -13,41 +13,44 @@ static void handle_error(const char *errmsg) {
     exit(EXIT_FAILURE);
 }
 
-uint8_t *get_raw_bytes(const char *filename) {
+struct Bytes *get_raw_bytes(const char *filename) {
     FILE *fd;
-    long bytes;
-    uint8_t *raw;
+    struct Bytes *bytes;
+
+    if (!(bytes = malloc(sizeof(struct Bytes)))) {
+        handle_error("error allocating struct Bytes");
+    }
 
     if (!(fd = fopen(filename, READ))) {
         handle_error("error opening file");
     }
 
 	fseek(fd, 0, SEEK_END);
-	bytes = ftell(fd);
+	bytes->size = ftell(fd);
 	fseek(fd, 0, SEEK_SET);
 
-	if (!(raw = malloc(bytes))) {
-        handle_error("error allocating memory");
+	if (!(bytes->bytes = malloc(bytes->size))) {
+        handle_error("error allocating bytes [struct Bytes]");
     }
 
-	fread(raw, 1, bytes, fd);
+	fread(bytes->bytes, 1, bytes->size, fd);
 
 	if (fclose(fd) == EOF) {
         handle_error("error closing file");
     }
 
-    return raw;
+    return bytes;
 }
 
-int is_elf(uint8_t *raw) {
-    return *((uint32_t *)raw) == ELF;
+int is_elf(struct Bytes *raw) {
+    return *((uint32_t *)(raw->bytes)) == ELF;
 }
 
-int is_pe(uint8_t *raw) {
-    return *((uint16_t *)raw) == PE;
+int is_pe(struct Bytes *raw) {
+    return *((uint16_t *)(raw->bytes)) == PE;
 }
 
-struct Elf64_bin *parse_elf(uint8_t *raw) {
+struct Elf64_bin *parse_elf(struct Bytes *raw) {
     struct Elf64_bin *elf;
 
     if (!(elf = malloc(sizeof(struct Elf64_bin)))) {
@@ -58,7 +61,7 @@ struct Elf64_bin *parse_elf(uint8_t *raw) {
         handle_error("error allocating memory for ELF header");
     }
 
-    memcpy(elf->ehdr, raw, sizeof(Elf64_Ehdr));
+    memcpy(elf->ehdr, raw->bytes, sizeof(Elf64_Ehdr));
 
     if (!(elf->phdr = malloc(sizeof(Elf64_Phdr) * elf->ehdr->e_phnum))) {
         handle_error("error allocating memory for Program Headers");
@@ -69,7 +72,7 @@ struct Elf64_bin *parse_elf(uint8_t *raw) {
     }
 
     for (size_t i = 0; i < elf->ehdr->e_phnum; ++i) {
-        memcpy(elf->phdr + i, raw + elf->ehdr->e_phoff + i * elf->ehdr->e_phentsize,
+        memcpy(elf->phdr + i, raw->bytes + elf->ehdr->e_phoff + i * elf->ehdr->e_phentsize,
                 elf->ehdr->e_phentsize);
 
         elf->segments[i].phdr_index = i;
@@ -77,10 +80,15 @@ struct Elf64_bin *parse_elf(uint8_t *raw) {
             handle_error("error allocating memory for Segment bytes");
         }
 
-        memcpy(elf->segments[i].bytes, raw + elf->phdr[i].p_offset, elf->phdr[i].p_filesz);
+        memcpy(elf->segments[i].bytes, raw->bytes + elf->phdr[i].p_offset, elf->phdr[i].p_filesz);
     }
 
     return elf;
+}
+
+void free_raw_bytes(struct Bytes *b) {
+    free(b->bytes);
+    free(b);
 }
 
 void free_elf(struct Elf64_bin *elf) {

@@ -8,7 +8,7 @@
 #include "file.h"
 
 int main(int argc, char *argv[]) {
-	uint8_t *raw;
+	struct Bytes *raw;
 	struct Elf64_bin *elf;
 	char *filename;
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
 	if (!is_elf(raw)) return EXIT_SUCCESS;
 	elf = parse_elf(raw);
-	free(raw);
+	free_raw_bytes(raw);
 
 	disassemble(elf);
 	free_elf(elf);
