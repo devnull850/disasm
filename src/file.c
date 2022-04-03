@@ -1,17 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "file.h"
+#include "../include/file.h"
+#include "../include/util.h"
 
 const char READ[] = "rb";
 
 const uint32_t ELF = 0x464c457f;
 const uint16_t PE = 0x5a4d;
-
-static void handle_error(const char *errmsg) {
-    fprintf(stderr, "%s\n", errmsg);
-    exit(EXIT_FAILURE);
-}
 
 struct Bytes *get_raw_bytes(const char *filename) {
     FILE *fd;

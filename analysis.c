@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "disasm.h"
-#include "file.h"
+#include "include/disasm.h"
+#include "include/file.h"
+#include "include/util.h"
 
 int main(int argc, char *argv[]) {
 	struct Bytes *raw;
@@ -18,8 +19,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!(filename = malloc(strlen(argv[1]) + 1))) {
-		fprintf(stderr, "memory allocation for filename failed");
-		exit(EXIT_FAILURE);
+		handle_error("memory allocation for filename failed");
 	}
 
 	strncpy(filename, argv[1], strlen(argv[1]));

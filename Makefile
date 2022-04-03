@@ -9,11 +9,11 @@ analysis: $(OBJ)
 analysis.o: analysis.c
 	gcc -c analysis.c
 
-file.o: file.c
-	gcc -c file.c
+file.o: src/file.c
+	gcc -c src/file.c
 
-disasm.o: disasm.c
-	gcc -c disasm.c
+disasm.o: src/disasm.c
+	gcc -c src/disasm.c
 
 .PHONY:
 clean:

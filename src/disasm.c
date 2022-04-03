@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "disasm.h"
+#include "../include/disasm.h"
+#include "../include/util.h"
 
 static void linear_disassemble(struct Elf64_bin *elf) {
     csh handle;
@@ -44,7 +45,6 @@ void disassemble(struct Elf64_bin *elf, enum Disassembly type) {
 			recursive_disassemble(elf);
 			break;
 		default:
-			fprintf(stderr, "invalid disassembly type");
-			exit(EXIT_FAILURE);
+			handle_error("invalid disassembly type");
 	}
 }
