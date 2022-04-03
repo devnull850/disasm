@@ -4,7 +4,7 @@
 
 #include "disasm.h"
 
-void disassemble(struct Elf64_bin *elf) {
+static void linear_disassemble(struct Elf64_bin *elf) {
     csh handle;
 	cs_insn *insn;
 	size_t count;
@@ -28,4 +28,23 @@ void disassemble(struct Elf64_bin *elf) {
 	}
 
 	cs_close(&handle);
+}
+
+static void recursive_disassemble(struct Elf64_bin *elf) {
+	puts("currently not implemented");
+	return;
+}
+
+void disassemble(struct Elf64_bin *elf, enum Disassembly type) {
+	switch (type) {
+		case LINEAR:
+			linear_disassemble(elf);
+			break;
+		case RECURSIVE:
+			recursive_disassemble(elf);
+			break;
+		default:
+			fprintf(stderr, "invalid disassembly type");
+			exit(EXIT_FAILURE);
+	}
 }

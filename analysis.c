@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 	elf = parse_elf(raw);
 	free_raw_bytes(raw);
 
-	disassemble(elf);
+	disassemble(elf, LINEAR);
 	free_elf(elf);
 
 	return EXIT_SUCCESS;
