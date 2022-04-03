@@ -14,6 +14,7 @@ void disassemble(struct Elf64_bin *elf) {
 
 	for (size_t i = 0; i < elf->ehdr->e_phnum; ++i) {
 		if (!(elf->phdr[i].p_flags & 1)) continue;
+		if (!elf->segments[i].bytes) continue;
 
 		count = cs_disasm(handle, elf->segments[i].bytes, elf->phdr[i].p_filesz,
 				elf->phdr[i].p_vaddr, 0, &insn);
