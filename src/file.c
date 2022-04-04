@@ -74,15 +74,21 @@ struct Elf64_bin *parse_elf(struct Bytes *raw) {
         elf->segments[i].phdr_index = i;
 
         if (elf->phdr[i].p_filesz > raw->size) {
-            elf->segments[i].bytes = NULL;
-            continue;
-        }
+            if (!(elf->segments[i].bytes = malloc(raw->size))) {
+                handle_error("error allocating memory for Segment bytes");
+            }
 
-        if (!(elf->segments[i].bytes = malloc(elf->phdr[i].p_filesz))) {
-            handle_error("error allocating memory for Segment bytes");
+            memcpy(elf->segments[i].bytes, raw->bytes, raw->size);
+            elf->segments[i].size = raw->size;
         }
+        else {
+            if (!(elf->segments[i].bytes = malloc(elf->phdr[i].p_filesz))) {
+                handle_error("error allocating memory for Segment bytes");
+            }
 
-        memcpy(elf->segments[i].bytes, raw->bytes + elf->phdr[i].p_offset, elf->phdr[i].p_filesz);
+            memcpy(elf->segments[i].bytes, raw->bytes + elf->phdr[i].p_offset, elf->phdr[i].p_filesz);
+            elf->segments[i].size = elf->phdr[i].p_filesz;
+        }
     }
 
     return elf;
@@ -95,9 +101,7 @@ void free_raw_bytes(struct Bytes *b) {
 
 void free_elf(struct Elf64_bin *elf) {
     for (size_t i = 0; i < elf->ehdr->e_phnum; ++i) {
-        if (elf->segments[i].bytes) {
-            free(elf->segments[i].bytes);
-        }
+        free(elf->segments[i].bytes);
     }
 
     free(elf->segments);

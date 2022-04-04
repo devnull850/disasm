@@ -1,5 +1,5 @@
 FLAGS=-Wall -Werror -g
-OBJ=analysis.o file.o disasm.o
+OBJ=analysis.o file.o disasm.o util.o
 
 all: analysis
 
@@ -14,6 +14,9 @@ file.o: src/file.c
 
 disasm.o: src/disasm.c
 	gcc -c src/disasm.c
+
+util.o: src/util.c
+	gcc -c src/util.c
 
 .PHONY:
 clean:

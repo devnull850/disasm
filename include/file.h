@@ -8,6 +8,7 @@
 struct Segment {
     size_t phdr_index;
     uint8_t *bytes;
+    size_t size;
 };
 
 struct Elf64_bin {
