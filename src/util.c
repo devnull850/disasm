@@ -2,19 +2,19 @@
 
 #include "../include/util.h"
 
-struct AddressList *new_address_list(void) {
+struct AddressList *new_address_list(size_t max_size) {
     struct AddressList *list;
 
     if (!(list = malloc(sizeof(struct AddressList)))) {
         handle_error("allocating memory for struct AddressList");
     }
 
-    list->allocated = 0x10;
-    list->size = 0;
-
-    if (!(list->address = malloc(list->allocated * sizeof(uint64_t)))) {
+    if (!(list->address = malloc(max_size * sizeof(uint64_t)))) {
         handle_error("allocating memory for address list");
     }
+
+    list->allocated = max_size;
+    list->size = 0;
 
     return list;
 }
@@ -26,13 +26,24 @@ void free_address_list(struct AddressList *list) {
 
 void add_address(struct AddressList *list, uint64_t addr) {
     if (list->size == list->allocated) {
-        if (!(list->address = realloc(list->address, (list->allocated += 0x10)))) {
-            handle_error("reallocating memory for address list");
-        }
+        handle_error("max size is attempting to be exceeded");
     }
 
     list->address[list->size] = addr;
     ++list->size;
+}
+
+uint64_t remove_address(struct AddressList *list) {
+    uint64_t addr;
+
+    if (is_empty(list)) {
+        handle_error("illegal operation on an empty list");
+    }
+
+    addr = list->address[list->size-1];
+    --list->size;
+
+    return addr;
 }
 
 size_t get_size(struct AddressList *list) {

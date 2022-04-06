@@ -6,14 +6,16 @@
 
 struct AddressList {
     uint64_t *address;
-    size_t allocated;
     size_t size;
+    size_t allocated;
 };
 
-struct AddressList *new_address_list(void);
+struct AddressList *new_address_list(size_t);
 void free_address_list(struct AddressList *);
 
 void add_address(struct AddressList *, uint64_t);
+
+uint64_t remove_address(struct AddressList *);
 
 size_t get_size(struct AddressList *);
 
