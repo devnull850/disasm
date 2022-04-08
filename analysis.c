@@ -12,17 +12,33 @@ int main(int argc, char *argv[]) {
 	struct Bytes *raw;
 	struct Elf64_bin *elf;
 	char *filename;
+	int option;
 
-	if (argc < 2) {
-		puts("Usage: ./analysis <filename>");
-		return EXIT_SUCCESS;
+	switch (argc) {
+		case 3:
+			if (argv[1][0] != 0x2d) goto usage;
+			if (argv[1][1] != 0x6c && argv[1][1] != 0x72) goto usage;
+			option = argv[1][1] == 0x72 ? RECURSIVE : LINEAR;
+
+			if (!(filename = malloc(strlen(argv[2]) + 1))) {
+				handle_error("memory allocation for filename failed");
+			}
+
+			strncpy(filename, argv[2], strlen(argv[2]));
+			break;
+
+		case 2:
+			if (!(filename = malloc(strlen(argv[1]) + 1))) {
+				handle_error("memory allocation for filename failed");
+			}
+
+			strncpy(filename, argv[1], strlen(argv[1]));
+			option = LINEAR;
+			break;
+
+		default:
+			goto usage;
 	}
-
-	if (!(filename = malloc(strlen(argv[1]) + 1))) {
-		handle_error("memory allocation for filename failed");
-	}
-
-	strncpy(filename, argv[1], strlen(argv[1]));
 
 	raw = get_raw_bytes(filename);
 	free(filename);
@@ -31,8 +47,12 @@ int main(int argc, char *argv[]) {
 	elf = parse_elf(raw);
 	free_raw_bytes(raw);
 
-	disassemble(elf, RECURSIVE);
+	disassemble(elf, option);
 	free_elf(elf);
 
+	return EXIT_SUCCESS;
+
+usage:
+	puts("Usage: ./analysis [-[l|r]] <filename>");
 	return EXIT_SUCCESS;
 }
