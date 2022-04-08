@@ -73,7 +73,7 @@ static void recursive_disassemble(struct Elf64_bin *elf) {
 	int flag;
 	uint8_t *p, b;
 	struct AddressList *visited, *addr_queue;
-	uint64_t target;
+	uint64_t target, addr;
 
 	handle = open_capstone_handle();
 	cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
@@ -81,9 +81,17 @@ static void recursive_disassemble(struct Elf64_bin *elf) {
 	for (size_t i = 0; i < elf->ehdr->e_phnum; ++i) {
 		if (!(elf->phdr[i].p_flags & 1)) continue;
 
-		p = elf->segments[i].bytes + elf->ehdr->e_entry;
-		code_size = elf->segments[i].size - elf->ehdr->e_entry;
-		target = elf->ehdr->e_entry;
+		if (elf->phdr[i].p_filesz != elf->segments[i].size) {
+			p = elf->segments[i].bytes + elf->ehdr->e_entry;
+			code_size = elf->segments[i].size - elf->ehdr->e_entry;
+			target = elf->ehdr->e_entry;
+		}
+		else {
+			p = elf->segments[i].bytes + (elf->ehdr->e_entry - elf->phdr[i].p_vaddr);
+			code_size = elf->phdr[i].p_filesz;
+			target = elf->ehdr->e_entry - elf->phdr[i].p_vaddr;
+		}
+		
 
 		visited = new_address_list(elf->segments[i].size);
 		addr_queue = new_address_list(elf->segments[i].size);
